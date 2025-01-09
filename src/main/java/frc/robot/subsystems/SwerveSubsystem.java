@@ -47,42 +47,27 @@ public class SwerveSubsystem extends SubsystemBase {
 
   }
 
-  private static ChassisSpeeds correctForDynamics(ChassisSpeeds originalSpeeds) {
-    final double LOOP_TIME_S = 0.02;
-    Pose2d futureRobotPose =
-        new Pose2d(
-            originalSpeeds.vxMetersPerSecond * LOOP_TIME_S,
-            originalSpeeds.vyMetersPerSecond * LOOP_TIME_S,
-            Rotation2d.fromRadians(originalSpeeds.omegaRadiansPerSecond * LOOP_TIME_S));
-    Twist2d twistForPose = GeometryUtils.log(futureRobotPose);
-    ChassisSpeeds updatedSpeeds =
-        new ChassisSpeeds(
-            twistForPose.dx / LOOP_TIME_S,
-            twistForPose.dy / LOOP_TIME_S,
-            twistForPose.dtheta / LOOP_TIME_S);
-    return updatedSpeeds;
-  }
-
+ 
   public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-    ChassisSpeeds desiredChassisSpeeds =
-    fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-    translation.getX(),
-    translation.getY(),
-    rotation,
-    getYaw())
-    : new ChassisSpeeds(
-        translation.getX(),
-        translation.getY(),
-        rotation);
-    desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
+    SwerveModuleState[] swerveModuleStates =
+        Constants.SwerveConstants.swerveKinematics.toSwerveModuleStates(
+            fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
+                                translation.getX(), 
+                                translation.getY(), 
+                                rotation, 
+                                getYaw()
+                            )
+                            : new ChassisSpeeds(
+                                translation.getX(), 
+                                translation.getY(), 
+                                rotation)
+                            );
+    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.maxSpeed);
 
-    SwerveModuleState[] swerveModuleStates = SwerveConstants.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
-    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveConstants.maxSpeed);
-    
     for(SwerveModule mod : swerveMods){
-        mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
+        mod.setDesiredState(swerveModuleStates[mod.moduleNumber], isOpenLoop);
     }
-  }    
+}    
 
   public SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] positions = new SwerveModulePosition[4];
@@ -92,18 +77,49 @@ public class SwerveSubsystem extends SubsystemBase {
     return positions;
   }
 
+  public SwerveModuleState[] getModuleStates(){
+    SwerveModuleState[] states = new SwerveModuleState[4];
+    for(SwerveModule mod : swerveMods){
+        states[mod.moduleNumber] = mod.getState();
+    }
+    return states;
+  }
 
-  public Rotation2d getYaw() {
-    return gyro.getRotation2d();
+  public Pose2d getPose() {
+    return swerveOdometry.getPoseMeters();
+  }
+
+  public void resetOdometry() {
+    swerveOdometry.resetPosition(getYaw(), getModulePositions(), getPose());
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds(){
+    return Constants.SwerveConstants.swerveKinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  public void setModuleStates(SwerveModuleState[] desiredStates) {
+    SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.maxSpeed);
+    
+    for(SwerveModule mod : swerveMods){
+        mod.setDesiredState(desiredStates[mod.moduleNumber], false);
+    }
+  }    
+
+  public void driveRobotRelative(ChassisSpeeds speeds){
+    SwerveModuleState[] states = Constants.SwerveConstants.swerveKinematics.toSwerveModuleStates(speeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.SwerveConstants.maxSpeed);
+    setModuleStates(states);
   }
 
   public void resetModulesToAbsolute(){
     for(SwerveModule mod : swerveMods){
         mod.resetToAbsolute();
     }
-}
+  }
 
-
+  public Rotation2d getYaw() {
+    return gyro.getRotation2d();
+  }
 
   @Override
   public void periodic() {
