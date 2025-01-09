@@ -4,9 +4,6 @@
 
 package frc.robot.subsystems;
 
-
-import java.time.chrono.IsoChronology;
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -35,7 +32,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.Robot;
 
 /** Add your docs here. */
 public class SwerveModule {
@@ -117,7 +113,7 @@ public class SwerveModule {
         return Rotation2d.fromRotations(angleEncoder.getAbsolutePosition().getValueAsDouble());
     }
 
-    private void resetToAbsolute(){
+    public void resetToAbsolute(){
         double absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         turnEncoder.setPosition(absolutePosition);
     }

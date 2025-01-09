@@ -4,10 +4,24 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
+
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.Constants.SwerveConstants;
+import frc.robot.util.GeometryUtils;
 
 public class SwerveSubsystem extends SubsystemBase {
   /** Creates a new SwerveSubsystem. */
@@ -15,8 +29,81 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveModule[] swerveMods;
   public AHRS gyro;
   
+  public SwerveSubsystem() {
+    gyro = new AHRS(SPI.Port.kMXP);
+    gyro.zeroYaw();
 
-  public SwerveSubsystem() {}
+    swerveMods = new SwerveModule[] {
+      new SwerveModule(0, Constants.SwerveConstants.Mod0.constants),
+      new SwerveModule(1, Constants.SwerveConstants.Mod1.constants),
+      new SwerveModule(2, Constants.SwerveConstants.Mod2.constants),
+      new SwerveModule(3, Constants.SwerveConstants.Mod3.constants)
+    };
+
+    Timer.delay(1);
+    resetModulesToAbsolute();
+
+    swerveOdometry = new SwerveDriveOdometry(SwerveConstants.swerveKinematics, getYaw(), getModulePositions());
+
+  }
+
+  private static ChassisSpeeds correctForDynamics(ChassisSpeeds originalSpeeds) {
+    final double LOOP_TIME_S = 0.02;
+    Pose2d futureRobotPose =
+        new Pose2d(
+            originalSpeeds.vxMetersPerSecond * LOOP_TIME_S,
+            originalSpeeds.vyMetersPerSecond * LOOP_TIME_S,
+            Rotation2d.fromRadians(originalSpeeds.omegaRadiansPerSecond * LOOP_TIME_S));
+    Twist2d twistForPose = GeometryUtils.log(futureRobotPose);
+    ChassisSpeeds updatedSpeeds =
+        new ChassisSpeeds(
+            twistForPose.dx / LOOP_TIME_S,
+            twistForPose.dy / LOOP_TIME_S,
+            twistForPose.dtheta / LOOP_TIME_S);
+    return updatedSpeeds;
+  }
+
+  public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
+    ChassisSpeeds desiredChassisSpeeds =
+    fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
+    translation.getX(),
+    translation.getY(),
+    rotation,
+    getYaw())
+    : new ChassisSpeeds(
+        translation.getX(),
+        translation.getY(),
+        rotation);
+    desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
+
+    SwerveModuleState[] swerveModuleStates = SwerveConstants.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveConstants.maxSpeed);
+    
+    for(SwerveModule mod : swerveMods){
+        mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
+    }
+  }    
+
+  public SwerveModulePosition[] getModulePositions() {
+    SwerveModulePosition[] positions = new SwerveModulePosition[4];
+    for(SwerveModule mod : swerveMods) {
+        positions[mod.getModuleNumber()] = mod.getPosition();
+    }
+    return positions;
+  }
+
+
+  public Rotation2d getYaw() {
+    return gyro.getRotation2d();
+  }
+
+  public void resetModulesToAbsolute(){
+    for(SwerveModule mod : swerveMods){
+        mod.resetToAbsolute();
+    }
+}
+
+
 
   @Override
   public void periodic() {
