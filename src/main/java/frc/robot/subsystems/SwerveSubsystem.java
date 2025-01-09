@@ -4,10 +4,18 @@
 
 package frc.robot.subsystems;
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SwerveSubsystem extends SubsystemBase {
   /** Creates a new SwerveSubsystem. */
+  public SwerveDriveOdometry swerveOdometry;
+  public SwerveModule[] swerveMods;
+  public AHRS gyro;
+  
+
   public SwerveSubsystem() {}
 
   @Override
