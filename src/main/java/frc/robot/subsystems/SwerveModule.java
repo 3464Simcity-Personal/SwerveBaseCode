@@ -35,7 +35,7 @@ import frc.robot.Constants.SwerveConstants;
 
 /** Add your docs here. */
 public class SwerveModule {
-
+    
     public int moduleNumber;
     private Rotation2d angleOffset;
 
@@ -72,6 +72,8 @@ public class SwerveModule {
         angleEncoder = new CANcoder(moduleConstants.canCoderID);
         configureEncoders();
     }
+
+
 
     public void setDesiredState(SwerveModuleState desiredState, Boolean isOpenLoop) {
         desiredState = ModuleState.optimize(desiredState, getState().angle);

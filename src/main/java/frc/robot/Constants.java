@@ -96,6 +96,12 @@ public final class Constants {
     public static final double driveKI = 0.0;
     public static final double driveKD = 0.0;
 
+    /* Heading PID Values */
+    public static final double headingKP = 4;
+    public static final double headingKI = 0.0;
+    public static final double headingKD = 0;
+    public static final double headingTolerence = 0;
+
 
     /* Drive Motor Characterization Values 
      * Divide SYSID values by 12 to convert from volts to percent output for CTRE */
