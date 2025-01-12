@@ -33,10 +33,10 @@ public class SwerveSubsystem extends SubsystemBase {
     gyro.zeroYaw();
 
     swerveMods = new SwerveModule[] {
-      new SwerveModule(0, Constants.SwerveConstants.Mod0.constants),
-      new SwerveModule(1, Constants.SwerveConstants.Mod1.constants),
-      new SwerveModule(2, Constants.SwerveConstants.Mod2.constants),
-      new SwerveModule(3, Constants.SwerveConstants.Mod3.constants)
+      new SwerveModule(0, Constants.ModConstants.Mod0.constants),
+      new SwerveModule(1, Constants.ModConstants.Mod1.constants),
+      new SwerveModule(2, Constants.ModConstants.Mod2.constants),
+      new SwerveModule(3, Constants.ModConstants.Mod3.constants)
     };
 
     Timer.delay(1);

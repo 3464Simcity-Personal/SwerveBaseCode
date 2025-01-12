@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.revrobotics.CANSparkBase.IdleMode;
 
 import frc.robot.util.ModuleConstants;
@@ -14,6 +12,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -114,7 +116,12 @@ public final class Constants {
     public static final double maxSpeed = 4.0;
     /** Radians per Second */
     public static final double maxAngularVelocity = 5.0;
-    
+
+    public static final double kDeadband = 0.08;
+
+  }
+  
+  public static final class ModConstants {
     public static final class Mod0 { //TODO: This must be tuned to specific robot
       public static final int driveMotorID = 1;
       public static final int angleMotorID = 2;
@@ -150,9 +157,38 @@ public final class Constants {
       public static final ModuleConstants constants = new ModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
     }
   }
-
-
+  
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kAuxStickPort = 1;
+
+    public static final XboxController xbox = new XboxController(kDriverControllerPort);
+    public static final Joystick auxStick = new Joystick(kAuxStickPort);
+    
+    public static final JoystickButton button1 = new JoystickButton(auxStick, 1);
+    public static final JoystickButton button2 = new JoystickButton(auxStick, 2);
+    public static final JoystickButton button3 = new JoystickButton(auxStick, 3);
+    public static final JoystickButton button4 = new JoystickButton(auxStick,4);
+    public static final JoystickButton button5 = new JoystickButton(auxStick, 5);
+    public static final JoystickButton button6 = new JoystickButton(auxStick, 6);
+    public static final JoystickButton button7 = new JoystickButton(auxStick, 7);
+    public static final JoystickButton button8 = new JoystickButton(auxStick, 8);
+    public static final JoystickButton button9 = new JoystickButton(auxStick, 9);
+    public static final JoystickButton button10 = new JoystickButton(auxStick, 10);
+    public static final JoystickButton button11 = new JoystickButton(auxStick, 11);
+    public static final JoystickButton button12 = new JoystickButton(auxStick, 12);
+
+    public static final POVButton pancakeUp = new POVButton(auxStick, 0);
+    public static final POVButton pancakeDown = new POVButton(auxStick, 180);
+    public static final POVButton pancakeRight = new POVButton(auxStick, 90);
+    public static final POVButton pancakeLeft = new POVButton(auxStick, 270);
+    
+    
+    public static final JoystickButton buttonA = new JoystickButton(xbox, 1);
+    public static final JoystickButton buttonB = new JoystickButton(xbox, 2);
+    public static final JoystickButton buttonX = new JoystickButton(xbox, 3);
+    public static final JoystickButton buttonY = new JoystickButton(xbox, 4);
+    public static final JoystickButton buttonLB = new JoystickButton(xbox, 5);
+    public static final JoystickButton buttonRB = new JoystickButton(xbox, 6);
   }
 }
